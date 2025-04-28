@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const readlineSync = require('readline-sync');
 
 // 创建命令行交互对象
 const rl = readline.createInterface({
@@ -18,11 +19,18 @@ const rl = readline.createInterface({
 // 要排除的目录和文件
 const EXCLUDED_PATHS = [
     '.cursor',
+    '.git',
     'encrypt_project.js',
     'decrypt_project.js',
     'encrypted_files.json',
     'node_modules'
 ];
+
+// 监听SIGINT优雅退出
+process.on('SIGINT', () => {
+    console.log('\nOperation cancelled.');
+    process.exit(0);
+});
 
 // 加密文件内容
 function encryptContent(contentBuffer, password) {
@@ -59,7 +67,7 @@ function encryptFileName(fileName, password) {
 async function processDirectory(dirPath, password, fileMap, originalBasePath) {
     const relativePath = path.relative(originalBasePath, dirPath);
     if (EXCLUDED_PATHS.some(excluded => relativePath.startsWith(excluded))) {
-        console.log(`跳过排除的路径: ${relativePath}`);
+        console.log(`Skipping excluded path: ${relativePath}`);
         return;
     }
 
@@ -70,7 +78,7 @@ async function processDirectory(dirPath, password, fileMap, originalBasePath) {
         const relativeItemPath = path.relative(originalBasePath, itemPath);
 
         if (EXCLUDED_PATHS.some(excluded => relativeItemPath.startsWith(excluded))) {
-            console.log(`跳过排除的文件/目录: ${relativeItemPath}`);
+            console.log(`Skipping excluded file/directory: ${relativeItemPath}`);
             continue;
         }
 
@@ -92,7 +100,17 @@ async function processDirectory(dirPath, password, fileMap, originalBasePath) {
             await processDirectory(itemPath, password, fileMap, originalBasePath);
         } else {
             // 处理文件
-            const contentBuffer = fs.readFileSync(itemPath); // 不指定编码，支持二进制
+            let contentBuffer;
+            let isText = true;
+            try {
+                // 优先尝试utf8编码
+                const content = fs.readFileSync(itemPath, 'utf8');
+                contentBuffer = Buffer.from(content, 'utf8');
+            } catch (e) {
+                // 失败则用二进制方式
+                contentBuffer = fs.readFileSync(itemPath);
+                isText = false;
+            }
             const encryptedContent = encryptContent(contentBuffer, password);
             const encryptedFileName = encryptFileName(item, password);
 
@@ -102,10 +120,11 @@ async function processDirectory(dirPath, password, fileMap, originalBasePath) {
                 encryptedName: encryptedFileName.fileName,
                 nameIv: encryptedFileName.iv,
                 contentIv: encryptedContent.iv,
-                encryptedContent: encryptedContent.content
+                encryptedContent: encryptedContent.content,
+                isText: isText
             };
 
-            console.log(`已加密文件: ${relativeItemPath}`);
+            console.log(`Encrypted file: ${relativeItemPath}`);
         }
     }
 }
@@ -128,12 +147,12 @@ function applyEncryptedNames(fileMap, basePath) {
             fs.writeFileSync(fullPath, Buffer.from(info.encryptedContent, 'hex'));
             // 重命名文件
             fs.renameSync(fullPath, newName);
-            console.log(`已重命名文件: ${itemPath} -> ${info.encryptedName}`);
+            console.log(`Renamed file: ${itemPath} -> ${info.encryptedName}`);
         } else if (info.type === 'directory') {
             // 重命名目录
             if (fs.existsSync(fullPath)) {
                 fs.renameSync(fullPath, newName);
-                console.log(`已重命名目录: ${itemPath} -> ${info.encryptedName}`);
+                console.log(`Renamed directory: ${itemPath} -> ${info.encryptedName}`);
             }
         }
     }
@@ -141,38 +160,57 @@ function applyEncryptedNames(fileMap, basePath) {
 
 // 主函数
 async function main() {
-    rl.question('请输入加密密码: ', async (password) => {
+    let password = '';
+    while (true) {
+        password = readlineSync.question('Enter encryption password (type exit to cancel, clear to re-enter): ', {hideEchoBack: true});
+        if (password.toLowerCase() === 'exit') {
+            console.log('Encryption cancelled.');
+            process.exit(0);
+        }
+        if (password.toLowerCase() === 'clear') {
+            continue;
+        }
         if (!password) {
-            console.error('错误: 密码不能为空');
-            rl.close();
-            return;
+            console.error('Error: Password cannot be empty.');
+            continue;
         }
-
-        const basePath = process.cwd();
-        const fileMap = {};
-
-        console.log('开始扫描和加密文件...');
-
-        try {
-            await processDirectory(basePath, password, fileMap, basePath);
-
-            // 保存加密映射信息
-            fs.writeFileSync(
-                path.join(basePath, 'encrypted_files.json'),
-                JSON.stringify(fileMap, null, 2)
-            );
-
-            console.log('应用加密的文件名...');
-            applyEncryptedNames(fileMap, basePath);
-
-            console.log('加密完成! 加密映射已保存到 encrypted_files.json');
-            console.log('请保存您的密码，解密时需要使用相同的密码');
-        } catch (error) {
-            console.error('加密过程中出错:', error);
+        let password2 = readlineSync.question('Re-enter password to confirm: ', {hideEchoBack: true});
+        if (password2.toLowerCase() === 'exit') {
+            console.log('Encryption cancelled.');
+            process.exit(0);
         }
+        if (password2.toLowerCase() === 'clear') {
+            continue;
+        }
+        if (password !== password2) {
+            console.error('Passwords do not match, please try again.');
+            continue;
+        }
+        break;
+    }
 
-        rl.close();
-    });
+    const basePath = process.cwd();
+    const fileMap = {};
+
+    console.log('Scanning and encrypting files...');
+
+    try {
+        await processDirectory(basePath, password, fileMap, basePath);
+
+        // 保存加密映射信息
+        fs.writeFileSync(
+            path.join(basePath, 'encrypted_files.json'),
+            JSON.stringify(fileMap, null, 2)
+        );
+
+        console.log('Applying encrypted filenames...');
+        applyEncryptedNames(fileMap, basePath);
+
+        console.log('Encryption complete! Mapping saved to encrypted_files.json');
+        console.log('Please save your password. The same password is required for decryption.');
+    } catch (error) {
+        console.error('Error during encryption:', error);
+    }
 }
 
 // 运行主函数

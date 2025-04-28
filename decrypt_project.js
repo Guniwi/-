@@ -8,11 +8,18 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const readlineSync = require('readline-sync');
 
 // 创建命令行交互对象
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
+});
+
+// 监听SIGINT优雅退出
+process.on('SIGINT', () => {
+    console.log('\nOperation cancelled.');
+    process.exit(0);
 });
 
 // 解密文件内容
@@ -61,7 +68,7 @@ function applyDecryption(fileMap, basePath, password) {
 
             if (fs.existsSync(encryptedPath)) {
                 fs.renameSync(encryptedPath, originalPath);
-                console.log(`已恢复目录名: ${info.encryptedName} -> ${currentDir}`);
+                console.log(`Restored directory: ${info.encryptedName} -> ${currentDir}`);
             }
         }
     }
@@ -89,12 +96,12 @@ function applyDecryption(fileMap, basePath, password) {
                     // 恢复文件名
                     fs.renameSync(encryptedPath, originalPath);
 
-                    console.log(`已解密文件: ${info.encryptedName} -> ${fileName}`);
+                    console.log(`Restored file: ${info.encryptedName} -> ${fileName}`);
                 } catch (error) {
-                    console.error(`解密文件时出错 ${itemPath}:`, error.message);
+                    console.error(`Error decrypting file ${itemPath}:`, error.message);
                 }
             } else {
-                console.warn(`警告: 找不到加密文件 ${encryptedPath}`);
+                console.warn(`Warning: Encrypted file not found ${encryptedPath}`);
             }
         }
     }
@@ -103,40 +110,44 @@ function applyDecryption(fileMap, basePath, password) {
 // 主函数
 async function main() {
     if (!fs.existsSync('encrypted_files.json')) {
-        console.error('错误: 找不到加密映射文件 encrypted_files.json');
-        rl.close();
+        console.error('Error: encrypted_files.json not found.');
         return;
     }
 
-    rl.question('请输入解密密码: ', (password) => {
+    let password = '';
+    while (true) {
+        password = readlineSync.question('Enter decryption password (type exit to cancel, clear to re-enter): ', {hideEchoBack: true});
+        if (password.toLowerCase() === 'exit') {
+            console.log('Decryption cancelled.');
+            process.exit(0);
+        }
+        if (password.toLowerCase() === 'clear') {
+            continue;
+        }
         if (!password) {
-            console.error('错误: 密码不能为空');
-            rl.close();
-            return;
+            console.error('Error: Password cannot be empty.');
+            continue;
         }
+        break;
+    }
 
-        try {
-            const basePath = process.cwd();
-            const fileMapJson = fs.readFileSync('encrypted_files.json', 'utf8');
-            const fileMap = JSON.parse(fileMapJson);
+    try {
+        const basePath = process.cwd();
+        const fileMapJson = fs.readFileSync('encrypted_files.json', 'utf8');
+        const fileMap = JSON.parse(fileMapJson);
 
-            console.log('开始解密文件...');
-            applyDecryption(fileMap, basePath, password);
-            console.log('解密完成!');
+        console.log('Decrypting files...');
+        applyDecryption(fileMap, basePath, password);
+        console.log('Decryption complete!');
 
-            // 询问是否删除加密映射文件
-            rl.question('是否删除加密映射文件 encrypted_files.json? (y/n): ', (answer) => {
-                if (answer.toLowerCase() === 'y') {
-                    fs.unlinkSync('encrypted_files.json');
-                    console.log('已删除加密映射文件');
-                }
-                rl.close();
-            });
-        } catch (error) {
-            console.error('解密过程中出错:', error);
-            rl.close();
+        const answer = readlineSync.question('Delete encrypted_files.json? (y/n): ');
+        if (answer.toLowerCase() === 'y') {
+            fs.unlinkSync('encrypted_files.json');
+            console.log('Mapping file deleted.');
         }
-    });
+    } catch (error) {
+        console.error('Error during decryption:', error);
+    }
 }
 
 // 运行主函数
