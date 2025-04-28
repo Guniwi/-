@@ -1,0 +1,18 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 项目结构概述
+
+这是一个基于 AutoX.js 开发的游戏技能自动释放脚本，用于自动管理和释放游戏中的技能。
+
+## 核心文件
+
+- [main.js](mdc:main.js) - 主入口文件，包含脚本初始化和主流程控制
+- [skill_engine.js](mdc:skill_engine.js) - 技能引擎，管理技能状态和执行逻辑
+- [skill_config.js](mdc:skill_config.js) - 技能系统配置，定义技能属性和各种配置项
+- [battle_module.js](mdc:battle_module.js) - 战斗模块，处理技能释放和战斗相关功能
+- [base_module.js](mdc:base_module.js) - 模块基类，所有功能模块都继承自此类
+- [module_ui_manager.js](mdc:module_ui_manager.js) - 模块UI管理器，管理所有模块的UI界面
+- [project.json](mdc:project.json) - 项目配置文件

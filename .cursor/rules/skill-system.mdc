@@ -1,0 +1,41 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 技能系统
+
+技能系统是脚本的核心功能，负责管理和释放游戏技能。
+
+## 技能配置
+
+[skill_config.js](mdc:skill_config.js) 包含所有技能相关配置：
+- 不同角色/场景的技能配置文件（profiles）
+- 每个技能的详细属性（冷却时间、优先级、效果等）
+- Boss检测相关设置
+- 打断系统配置
+
+主要对象：
+```javascript
+skillSystemConfig = {
+    currentProfile: "默认",    // 当前使用的配置文件
+    gameSettings: { ... },     // 游戏界面设置
+    profiles: { ... },         // 所有配置文件
+    interruptFailures: { ... } // 打断失败记录
+}
+```
+
+## 技能引擎
+
+[skill_engine.js](mdc:skill_engine.js) 实现技能运行时逻辑：
+- 技能状态管理（冷却、充能、buff等）
+- 技能优先级排序
+- 技能执行逻辑
+- Boss施法检测与打断处理
+
+## 战斗模块
+
+[battle_module.js](mdc:battle_module.js) 整合技能系统：
+- 战斗状态检测
+- 技能执行循环
+- 战斗数据统计

@@ -1,0 +1,29 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 模块系统
+
+脚本使用模块化架构设计，所有功能都被组织成不同的模块。
+
+## 模块基类
+
+[base_module.js](mdc:base_module.js) 定义了所有模块的共同行为：
+- 模块初始化、启动、停止、暂停、恢复等生命周期方法
+- 配置管理（加载/保存）
+- 线程管理
+- UI接口
+
+## 核心模块
+
+- **战斗模块** [battle_module.js](mdc:battle_module.js)：
+  处理战斗检测、技能释放和战斗相关功能
+
+## 模块UI管理器
+
+[module_ui_manager.js](mdc:module_ui_manager.js) 负责管理所有模块的UI界面：
+- 主界面和迷你悬浮窗
+- 每个模块的配置界面
+- 技能管理界面
+- 系统设置界面

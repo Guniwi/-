@@ -1,0 +1,41 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 配置指南
+
+脚本提供了多种配置选项，可以根据不同游戏和需求进行调整。
+
+## 主配置文件
+
+[skill_config.js](mdc:skill_config.js) 包含技能配置和游戏设置：
+- 多个技能配置文件（profiles），可针对不同角色或场景切换
+- 每个技能的详细属性配置
+- 游戏界面相关设置（Boss头像位置、技能读条区域等）
+
+## 技能属性
+
+每个技能可配置的属性包括：
+- `name`：技能名称
+- `description`：技能描述
+- `type`：技能类型（damage, heal, buff, interrupt等）
+- `priority`：优先级（数值越小越优先）
+- `cooldown`：冷却时间（秒）
+- `buffDuration`：Buff持续时间（秒）
+- `charges`：充能数量
+- `condition`：自定义触发条件函数
+- 以及针对不同技能类型的特殊属性
+
+## 主脚本配置
+
+[main.js](mdc:main.js) 中的 `config` 对象包含基本配置：
+- 技能BuffDuration和冷却时间
+- 血量检测阈值
+- 检查间隔
+- 缓存有效期
+- 找图相似度阈值
+
+## 模块配置
+
+每个模块都有自己的配置选项，可通过UI界面进行调整，配置保存在 `/sdcard/AutoX/configs/` 目录下。
