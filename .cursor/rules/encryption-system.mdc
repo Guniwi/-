@@ -1,0 +1,25 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# 加密解密系统
+
+本项目支持对源码和配置文件进行加密与解密，保护项目安全。
+
+## 相关文件
+- [encrypt_project.js](mdc:encrypt_project.js)：加密主逻辑，递归加密所有文件内容和文件名，生成加密映射文件
+- [decrypt_project.js](mdc:decrypt_project.js)：解密主逻辑，按映射文件恢复原始内容和文件名
+- [加密解密使用说明.md](mdc:加密解密使用说明.md)：详细操作说明
+- [encrypted_files.json](mdc:encrypted_files.json)：加密映射文件，记录加密文件名、IV、内容等信息
+
+## 用法说明
+1. 运行 `node encrypt_project.js`，输入加密密码，自动加密所有源码和配置文件，生成 `encrypted_files.json`
+2. 运行 `node decrypt_project.js`，输入密码，自动解密并恢复所有文件
+3. 加密/解密过程会排除 `.cursor`、`node_modules`、加密脚本、映射文件等
+
+## 注意事项
+- 加密/解密操作需谨慎，建议提前备份项目
+- 密码不会被保存，丢失密码或映射文件将无法恢复
+- 加密后，源码和配置文件均不可直接读取，仅保留加密脚本、解密脚本和映射文件
+- 支持 AES-256-CBC 算法，每个文件/文件名独立IV，安全性高

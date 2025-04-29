@@ -1,29 +1,33 @@
 ---
 description:
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 # 模块系统
 
-脚本使用模块化架构设计，所有功能都被组织成不同的模块。
+脚本采用模块化架构，所有功能均以模块形式组织，便于扩展和维护。
 
 ## 模块基类
-
 [base_module.js](mdc:base_module.js) 定义了所有模块的共同行为：
-- 模块初始化、启动、停止、暂停、恢复等生命周期方法
-- 配置管理（加载/保存）
-- 线程管理
-- UI接口
+- 生命周期方法：初始化、启动、停止、暂停、恢复
+- 配置管理：自动加载/保存配置到 `/sdcard/AutoX/configs/`
+- 线程管理：统一创建和回收线程
+- UI接口：提供主界面和配置界面 XML 生成、事件处理
+- 状态获取：支持获取模块运行状态
 
 ## 核心模块
-
 - **战斗模块** [battle_module.js](mdc:battle_module.js)：
-  处理战斗检测、技能释放和战斗相关功能
+  - 自动检测战斗状态（图像识别或血量变化）
+  - 驱动技能引擎主循环
+  - 技能使用统计、事件系统、UI配置
+- **技能系统** [skill_engine.js](mdc:skill_engine.js) + [skill_config.js](mdc:skill_config.js)：
+  - 技能优先级、冷却、充能、Buff、打断、Boss施法检测
+  - 多角色/场景配置、技能属性、打断失败记录
+- **UI管理模块** [module_ui_manager.js](mdc:module_ui_manager.js)：
+  - 管理所有模块的主界面、悬浮窗、技能管理、系统设置、Boss检测设置等
+  - 支持模块注册、UI自动刷新、最小化/还原、快捷操作
 
-## 模块UI管理器
-
-[module_ui_manager.js](mdc:module_ui_manager.js) 负责管理所有模块的UI界面：
-- 主界面和迷你悬浮窗
-- 每个模块的配置界面
-- 技能管理界面
-- 系统设置界面
+## 模块注册与扩展
+- 所有模块需继承 BaseModule 并实现 `_init`、`_start`、`_stop` 等方法
+- 通过 ModuleUIManager.registerModule 注册到主界面
+- 支持独立运行、快捷方式创建、UI事件分发

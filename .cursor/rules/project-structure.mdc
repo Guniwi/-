@@ -1,18 +1,34 @@
 ---
 description:
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
 # 项目结构概述
 
-这是一个基于 AutoX.js 开发的游戏技能自动释放脚本，用于自动管理和释放游戏中的技能。
+本项目为基于 AutoX.js 的游戏技能自动释放与辅助系统，采用模块化架构，支持技能自动释放、战斗检测、技能配置管理、UI管理、加密解密等功能。
 
 ## 核心文件
+- [main.js](mdc:main.js)：主入口，负责脚本初始化、主流程、线程管理、配置加载、快捷方式创建等。
+- [skill_engine.js](mdc:skill_engine.js)：技能引擎，负责技能优先级排序、冷却、充能、Buff、打断、Boss施法检测等。
+- [skill_config.js](mdc:skill_config.js)：技能系统配置，支持多角色/场景配置、技能属性、打断失败记录、配置文件管理。
+- [battle_module.js](mdc:battle_module.js)：战斗模块，自动检测战斗状态并驱动技能引擎循环，支持UI配置和技能统计。
+- [base_module.js](mdc:base_module.js)：模块基类，统一生命周期、配置、线程管理、UI接口。
+- [module_ui_manager.js](mdc:module_ui_manager.js)：模块UI管理器，负责主界面、悬浮窗、技能管理、系统设置、Boss检测等UI。
+- [encrypt_project.js](mdc:encrypt_project.js)：项目加密脚本，支持全项目文件内容和文件名加密。
+- [decrypt_project.js](mdc:decrypt_project.js)：项目解密脚本，恢复加密后的项目。
+- [加密解密使用说明.md](mdc:加密解密使用说明.md)：加密解密操作说明文档。
+- [encrypted_files.json](mdc:encrypted_files.json)：加密映射文件，记录加密文件名、IV、内容等信息。
+- [project.json](mdc:project.json)：项目配置文件。
+- [package.json](mdc:package.json)：依赖声明。
 
-- [main.js](mdc:main.js) - 主入口文件，包含脚本初始化和主流程控制
-- [skill_engine.js](mdc:skill_engine.js) - 技能引擎，管理技能状态和执行逻辑
-- [skill_config.js](mdc:skill_config.js) - 技能系统配置，定义技能属性和各种配置项
-- [battle_module.js](mdc:battle_module.js) - 战斗模块，处理技能释放和战斗相关功能
-- [base_module.js](mdc:base_module.js) - 模块基类，所有功能模块都继承自此类
-- [module_ui_manager.js](mdc:module_ui_manager.js) - 模块UI管理器，管理所有模块的UI界面
-- [project.json](mdc:project.json) - 项目配置文件
+## 目录说明
+- `/sdcard/AutoX/img/`：技能图标、血条等图片资源目录。
+- `/sdcard/AutoX/configs/`：各模块配置文件目录。
+- `.cursor/rules/`：Cursor 规则文件目录。
+
+## 主要模块
+- 技能系统（技能引擎+配置）
+- 战斗模块
+- UI管理模块
+- 加密解密工具
+- 基础模块系统
